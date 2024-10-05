@@ -13,3 +13,16 @@ Once you select the snippet file it will either:
 Set `$SNIPPETS` environment variable to point at your snippets directory.
 Make sure snip script is on your `$PATH`.
 
+## Dependencies
+
+* [fzf](https://github.com/junegunn/fzf)
+* [xclip](https://github.com/astrand/xclip)
+
+Optional:
+
+* [pygmentize](https://pygments.org/docs/cmdline/) (recommended)
+
+Or:
+
+* [bat](https://github.com/sharkdp/bat)
+
