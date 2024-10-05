@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Initialize variables
+C_FLAG=false
+
+# Parse options
+while getopts ":c" opt; do
+    case ${opt} in
+        c)
+            C_FLAG=true
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+    esac
+done
+
+function perform_checks() {
+    # check if SNIPPETS env var is set
+    if [[ -z "${SNIPPETS}" ]]; then
+	echo "Error: SNIPPETS env variable not set"
+	echo "Set SNIPPETS env variable to point to your snipets directory"
+	exit 1
+    fi
+
+    # check if SNIPPETS points to existing directory
+    if [[ ! -d "${SNIPPETS}" ]]; then
+	echo "Error: ${SNIPPETS} is not a directory"
+	exit 1
+    fi
+
+    # check if fzf is available
+    if ! command -v fzf 2>&1 >/dev/null
+    then
+	echo "Error: fzf not found"
+	exit 1
+    fi
+
+    # check if xclip is available
+    if ! command -v xclip 2>&1 >/dev/null
+    then
+	echo "Error: xclip not found"
+	exit 1
+    fi
+
+    # check if pygmentize or bat is available
+    if command -v pygmentize >/dev/null 2>&1; then
+	CAT="pygmentize -f terminal256 -O style=native -g"
+    elif command -v bat >/dev/null 2>&1; then
+	CAT="bat -p"
+    else
+	CAT=cat
+    fi
+
+    # check if tree is available
+    if command -v tree >/dev/null 2>&1; then
+	LS=tree
+    else
+	LS=ls
+    fi
+}
+
+# TODO: use preview function
+function preview() {
+    if [[ -d $1 ]]; then
+	${LS} $1
+    else
+	${CAT} $1
+    fi
+}
+
+perform_checks
+set -u
+
+pushd ${SNIPPETS}
+FILE=$(find . ! -path './.git/*' ! -path './.git' | fzf --height=75% --preview "${CAT} {}")
+
+if [ "${C_FLAG}" = true ]; then
+    popd
+    echo "Copying ${FILE}"
+    cp -r ${SNIPPETS}/${FILE} ./
+else
+    ${CAT} ${FILE}
+    cat ${FILE} | xclip -selection c
+fi
+
