@@ -39,10 +39,12 @@ function perform_checks() {
 	exit 1
     fi
 
-    # check if xclip is available
-    if ! command -v xclip 2>&1 >/dev/null
-    then
-	echo "Error: xclip not found"
+    if command -v wl-copy >/dev/null 2>&1; then
+	CLIP_APP=wl-copy
+    elif command -v xclip >/dev/null 2>&1; then
+	CLIP_APP=xclip
+    else
+	echo "Error: wl-copy or xclip not found" >&2
 	exit 1
     fi
 
@@ -84,6 +86,6 @@ if [ "${C_FLAG}" = true ]; then
     cp -r ${SNIPPETS}/${FILE} ./
 else
     ${CAT} ${FILE}
-    cat ${FILE} | xclip -selection c
+    cat ${FILE} | ${CLIP_APP}
 fi
 
